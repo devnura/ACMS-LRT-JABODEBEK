@@ -60,6 +60,17 @@ var loginRouter = require('./app/controllers/loginController/routes')
 var addStockRouter = require('./app/controllers/addStockController/routes')
 var logoutRouter = require('./app/controllers/logoutController/routes')
 
+app.get("/", (req, res) => {
+    res.json({
+      message: "Welcome to API Access Card Managemen System.",
+    });
+  });
+
+app.use(function(req, res){
+    res.status(404).json({
+        message: "Upss route not found. please read the API Documentation!",
+    });
+});
 //route v1
 app.use('/api/v1/', router);
 
