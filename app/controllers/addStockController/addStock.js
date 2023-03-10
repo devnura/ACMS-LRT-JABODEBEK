@@ -7,6 +7,7 @@ const db = require('../../config/database')
 	Services
 */
 const _addStock = require('./services/_addStock')
+const getAddStock = require('./services/getAddStock')
 
 const controller = async (req, res) => {
 	try {
@@ -16,7 +17,9 @@ const controller = async (req, res) => {
 		} = req || ""
 		
 		await db.transaction(async trx => {
-			if(body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0"){
+			const checkAddStock = await getAddStock(body.c_login, trx)
+
+			if(checkAddStock && (body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0")){
 				return res.status(200).send({
 					status: '00',
 					message: 'success',
