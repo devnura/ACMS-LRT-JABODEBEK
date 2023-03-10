@@ -21,7 +21,7 @@ const controller = async (req, res) => {
 		
 		await db.transaction(async trx => {
 			const checkAddStock = await getAddStock(body.c_login, trx)
-			
+			console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1")
 			if(!checkAddStock && body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0"){
 				result = {
 					status: '00',
@@ -33,7 +33,7 @@ const controller = async (req, res) => {
 				winston.logger.info(
 					`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
 				);
-
+				console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 2")
 				return res.status(200).send(result)   
 			}
 
@@ -49,7 +49,7 @@ const controller = async (req, res) => {
 				winston.logger.info(
 					`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
 				);
-
+				console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 3")
 				return res.status(200).send(result)  
 			}
 
@@ -63,13 +63,14 @@ const controller = async (req, res) => {
 			winston.logger.info(
 				`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
 			);
-
+			console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 4")
 			return res.status(200).send(result)  
 
 		})
 
 
 	} catch (e) {
+		console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 5")
 		return res.status(200).send({
 			status: '99',
 			message: e.message,
