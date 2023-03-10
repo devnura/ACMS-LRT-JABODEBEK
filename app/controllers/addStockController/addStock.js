@@ -19,13 +19,13 @@ const controller = async (req, res) => {
 		await db.transaction(async trx => {
 			const checkAddStock = await getAddStock(body.c_login, trx)
 
-			if(!checkAddStock && body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0"){
-				return res.status(200).send({
-					status: '00',
-					message: 'success',
-					data: {}
-				})
-			}
+			// if(!checkAddStock && body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0"){
+			// 	return res.status(200).send({
+			// 		status: '00',
+			// 		message: 'success',
+			// 		data: {}
+			// 	})
+			// }
 
 			const addstock = await _addStock(body, trx)
 			if (!addstock) {
