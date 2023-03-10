@@ -14,7 +14,7 @@ const getCardOwnerDetail = require('./services/getCardOwnerDetail')
 const getMasterCard = require('./services/getMasterCard')
 
 const controller = async (req, res) => {
-
+    let result = {}
     try {
 
         let {
@@ -22,28 +22,56 @@ const controller = async (req, res) => {
         } = req || ""
 
         await db.transaction(async trx => {
+            
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} getting cardOwnerDetail...`);
 
             const cardOwnerDetail = await getCardOwnerDetail(body.c_card_number, trx)
+
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result cardOwnerDetail : ${JSON.stringify(cardOwnerDetail)}`);
+
             // jika data owner kartu dan data kartu tidak ditemukan
             if (!cardOwnerDetail) {
                 const message = await getMessage(body.i_card_type, 'UPDATE CARD EXPIRED', "07", trx)
-                return res.status(200).send({
+                
+                result = {
                     status: message?.c_status || '02',
                     message: message?.n_desc || 'Data Employee/Tenant Tidak Ditemukan',
                     data: {}
-                })
+                }
+
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} getting masterCard...`)
+
             const masterCard = await getMasterCard(body.i_card_type, body.c_card_number, trx)
+
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result masterCard : ${JSON.stringify(masterCard)}`);
 
             // jika data kartu dan data kartu tidak ditemukan
             if (!masterCard) {
                 const message = await getMessage(body.i_card_type, 'UPDATE CARD EXPIRED', "03", trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || "03",
                     message: message?.n_desc || "Data Kartu tidak ditemukan",
                     data: {}
-                })
+                }
+
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             let today = moment(cardOwnerDetail.date_on_server)
@@ -54,29 +82,49 @@ const controller = async (req, res) => {
             let minUpdaeteExpiredDate = ''
             let endOfMonth = ''
 
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} getting cardERenewal...`)
+
             const cardERenewal = await getSetting('ECMS04', trx)
-            // console.log("apa nih ",cardERenewal?.e_setting.toUpperCase() == 'TRUE')
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result cardERenewal : ${JSON.stringify(masterCard)}`);
+
             if (!cardERenewal?.e_setting) {
                 const message = await getMessage(0, 'UPDATE CARD EXPIRED', "08", trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '08',
                     message: message?.n_desc || 'HUBUNGI ANDMINISTRATOR UNTUK MELAKUKAN PENGATURAN CARD RENEWAL STATE',
                     data: {}
-                })
+                }
+
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (cardERenewal?.e_setting.toUpperCase() == 'TRUE') {
-                const cardRenewalPeriod = await getSetting('ECMS05', trx)  
-                console.log("Card renewal mode : ", cardRenewalPeriod?.e_setting)
+                const cardRenewalPeriod = await getSetting('ECMS05', trx)
             
                 if (!cardRenewalPeriod?.e_setting) {
                     const message = await getMessage(0, 'UPDATE CARD EXPIRED', "08", trx)
-                    return res.status(200).send({
+
+                    result = {
                         status: message?.c_status || '08',
                         message: message?.n_desc || 'HUBUNGI ANDMINISTRATOR UNTUK MELAKUKAN PENGATURAN CARD RENEWAL PERIOD',
                         data: {}
-                    })
+                    }
+
+                    // log info
+                    winston.logger.info(
+                        `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                    );
+
+                    return res.status(200).send(result)
                 }
+
                 // cek expired date pada kartu dengan hari ini
                 let expired_on_card = ""
                 if (today.isAfter(moment(body.d_expired_date_on_card).format('YYYY-MM-DD'))) {
@@ -86,7 +134,6 @@ const controller = async (req, res) => {
                     expired_on_card = body.d_expired_date_on_card
                     d_active = moment(body.d_expired_date_on_card).format('YYYY-MM-DD')
                 }
-                console.log(expired_on_card)
 
                 //  cek apakah card expired sudah terlewat, 
                 //  jika sudah maka active date di set ke hari ini
@@ -95,7 +142,6 @@ const controller = async (req, res) => {
                 // cek expired date pada kartu dengan hari ini
                 endOfMonth = moment(expired_on_card).endOf('month').format('YYYY-MM-DD');
                 minUpdaeteExpiredDate = moment(expired_on_card).set('date', parseInt(cardRenewalPeriod?.e_setting || 20)).format('YYYY-MM-DD');
-                console.log("min : ", minUpdaeteExpiredDate)
                 
                 if (today.isBetween(minUpdaeteExpiredDate, endOfMonth)) {
                     d_expired = moment(endOfMonth).add(1, 'months').format('YYYY-MM-DD');
@@ -112,11 +158,18 @@ const controller = async (req, res) => {
                 console.log("Card renewal mode : ", 2)
                 if (!cardRenewalPeriod?.e_setting) {
                     const message = await getMessage(0, 'UPDATE CARD EXPIRED', "08", trx)
-                    return res.status(200).send({
+                    result = {
                         status: message?.c_status || '08',
                         message: message?.n_desc || 'HUBUNGI ANDMINISTRATOR UNTUK MELAKUKAN PENGATURAN CARD RENEWAL PERIOD',
                         data: {}
-                    })
+                    }
+
+                    // log info
+                    winston.logger.info(
+                        `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                    );
+
+                    return res.status(200).send(result)
                 }
 
                 // cek expired date pada kartu dengan hari ini
@@ -158,7 +211,7 @@ const controller = async (req, res) => {
             if (!cardOwnerDetail.b_active) {
                 // employee/tenant tidak aktif
                 const message = await getMessage(0, 'UPDATE CARD EXPIRED', "02", trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '02',
                     message: message?.n_desc || 'Employee / Tenant Sudah Tidak Aktif',
                     data: {
@@ -168,12 +221,19 @@ const controller = async (req, res) => {
                             c_desc: message?.c_desc || ""
                         }
                     } || {}
-                })
+                }
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (! today.isAfter(minUpdaeteExpiredDate) && today.isBefore(endOfMonth)) {
                 const message = await getMessage(0, 'UPDATE CARD EXPIRED', "06", trx)
-                return res.status(200).send({
+
+                result = {
                     status: message?.c_status || '06',
                     message: message?.n_desc || 'Belum Masuk Waktu Perpanjang',
                     data: {
@@ -183,12 +243,20 @@ const controller = async (req, res) => {
                             c_desc: message?.c_desc || ""
                         }
                     } || {}
-                })
+                }
+
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
+
             }
 
             if (!masterCard.b_active) {
                 const message = await getMessage(0, 'UPDATE CARD EXPIRED', "05", trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || "05",
                     message: message?.n_desc || "Kartu sudak tidak aktif",
                     data: {
@@ -198,12 +266,19 @@ const controller = async (req, res) => {
                             c_desc: message?.c_desc|| ""
                         }
                     } || {}
-                })
+                }
+
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (masterCard.i_blacklist_status != null) {
                 const message = await getMessage(0, 'UPDATE CARD EXPIRED', "07", trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || "07",
                     message: message?.n_desc || "Kartu Terkena Blacklist !",
                     data: {
@@ -213,12 +288,18 @@ const controller = async (req, res) => {
                             c_desc: message?.c_desc || ""
                         }
                     }
-                })
+                }
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             const message = await getMessage(0, 'UPDATE CARD EXPIRED', '00', trx)
 
-            return res.status(200).send({
+            result = {
                 status: message?.c_status || "00",
                 message: message?.n_desc || "Sukses",
                 data: {
@@ -228,16 +309,30 @@ const controller = async (req, res) => {
                         c_desc: message?.c_desc || ""
                     }
                 } || {}
-            })
+            }
+            // log info
+            winston.logger.info(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)
         })
 
     } catch (e) {
         console.error("[x] message : ", e.message)
-        return res.status(200).send({ //500
+        
+        result = { //500
             status: '99',
             message:  "Terjadi kesalahan system !",
             data: {}
-        })
+        }
+
+        // log info
+        winston.logger.info(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
     }
 }
 

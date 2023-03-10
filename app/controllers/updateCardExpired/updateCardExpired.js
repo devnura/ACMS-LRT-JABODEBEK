@@ -10,6 +10,7 @@ const updateCardExpired = require('./services/updateCardExpired')
 const getMessage = require('./services/getMessage')
 
 const controller = async (req, res) => {
+    let result = {}
     try {
 
         let {
@@ -22,29 +23,53 @@ const controller = async (req, res) => {
             
             const updatecardexpired = await updateCardExpired(body, trx)
             if (!updatecardexpired) {
-             const message = await getMessage("0", 'UPDATE CARD EXPIRED', '01', trx)
-             return res.status(200).send({
-                 status: message.c_status || '01',
-                 message: message.n_desc || 'Proses Update Kartu Gagal !',
-                 data: {}
-             })
+                const message = await getMessage("0", 'UPDATE CARD EXPIRED', '01', trx)
+                
+                result = {
+                    status: message.c_status || '01',
+                    message: message.n_desc || 'Proses Update Kartu Gagal !',
+                    data: {}
+                }
+
+                // log info
+                winston.logger.info(
+                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)        
+
             }
 
             const message = await getMessage("0", 'UPDATE CARD EXPIRED', '00', trx)
-             return res.status(200).send({
+             result = {
                  status: message.c_status || '00',
                  message: message.n_desc || 'Sukses',
                  data: {}
-             })
+             }
+
+            // log info
+            winston.logger.info(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result) 
         })
 
     } catch (e) {
         console.error("[x] message : ", e.message)
-        return res.status(200).send({ //500
+        
+        result = { //500
             status: '99',
             message:  "Terjadi kesalahan system !",
             data: {}
-        })
+        }
+
+        // log info
+        winston.logger.info(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
     }
 }
 
