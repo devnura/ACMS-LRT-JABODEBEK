@@ -16,14 +16,14 @@ const controller = async (req, res) => {
 		} = req || ""
 		
 		await db.transaction(async trx => {
-			if(body.q_employee_card == "0" || body.q_master_card == "0" || body.q_tenant_card){
+			if(body.q_employee_card == "0" || body.q_master_card == "0" || body.q_tenant_card == "0"){
 				return res.status(200).send({
 					status: '00',
 					message: 'success',
 					data: {}
 				})
 			}
-			
+
 			const addstock = await _addStock(body, trx)
 			if (!addstock) {
 				return res.status(200).send({
