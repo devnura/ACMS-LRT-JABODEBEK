@@ -37,11 +37,11 @@ app.get("/", (req, res) => {
     });
   });
 
-app.use(function(req, res){
-    res.status(404).json({
-        message: "Upss route not found. please read the API Documentation!",
-    });
-});
+// app.use(function(req, res){
+//     res.status(404).json({
+//         message: "Upss route not found. please read the API Documentation!",
+//     });
+// });
 //route v1
 app.use('/api/v1/', router);
 
