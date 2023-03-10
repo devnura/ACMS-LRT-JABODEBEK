@@ -12,6 +12,7 @@ const _addStock = require('./services/_addStock')
 const getAddStock = require('./services/getAddStock')
 
 const controller = async (req, res) => {
+	console.log("SAMPE SINI NIH")
 	let result = {}
 	try {
 
