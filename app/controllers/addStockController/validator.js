@@ -2,6 +2,8 @@ const {
     check,
     validationResult
 } = require('express-validator')
+const helper = require("../../helpers/helper")
+const winston = require("../../helpers/winston.logger");
 
 const addstock_rules = () => {
     return [
