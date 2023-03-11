@@ -2,7 +2,6 @@
     Config
  */
 const db = require('../../config/database')
-const helper = require('../../helpers/helper')
 const winston = require('../../helpers/winston.logger')
 
 /*
@@ -22,7 +21,7 @@ const controller = async (req, res) => {
 		
 		await db.transaction(async trx => {
 			const checkAddStock = await getAddStock(body.c_login, trx)
-			console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 1")
+
 			if(!checkAddStock && body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0"){
 				result = {
 					status: '00',
@@ -34,7 +33,7 @@ const controller = async (req, res) => {
 				winston.logger.info(
 					`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
 				);
-				console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 2")
+
 				return res.status(200).send(result)   
 			}
 
@@ -47,10 +46,9 @@ const controller = async (req, res) => {
 				}
 				
 				// log info
-				winston.logger.info(
+				winston.logger.warn(
 					`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
 				);
-				console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 3")
 				return res.status(200).send(result)  
 			}
 
@@ -64,21 +62,27 @@ const controller = async (req, res) => {
 			winston.logger.info(
 				`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
 			);
-			console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 4")
 			return res.status(200).send(result)  
 
 		})
 
 
-	} catch (e) {
-		console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 5")
-		return res.status(200).send({
-			status: '99',
-			message: e.message,
-			data: {}
-		})
+    } catch (e) {
+        console.error("[x] message : ", e.message)
+        
+        result = { //500
+            status: '99',
+            message:  "Terjadi kesalahan system !",
+            data: {}
+        }
 
-	}
+        // log info
+        winston.logger.info(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
+    }
 }
 
 module.exports = controller;

@@ -1,6 +1,4 @@
 const service = async (c_login, trx) => {
-    console.log("[*] GETTING ADDSTOCK : ")
-
     const rows = await trx.count("*")
         .from("ctm.t_d_addstock AS tda")
         .where({

@@ -1,5 +1,6 @@
 require('dotenv').config()
 const moment = require('moment')
+moment.locale('id')
 const {
     ACCESS_TOKEN_SECRET
 } = require('../../config/secret')

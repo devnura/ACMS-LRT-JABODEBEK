@@ -1,6 +1,4 @@
 const service = async (body, trx) => {
-
-    console.log('[*] INSERTING STOCK')
     
     let rows = await trx('ctm.t_d_addstock').insert({
         "c_login": body.c_login,
@@ -18,9 +16,7 @@ const service = async (body, trx) => {
         "d_addstock": body.d_addstock_at
     }, "i_id").onConflict('c_unique')
     .ignore()
-
-    if(rows) console.log('[*] ID STOCK : ', rows)
-
+    
     return rows
 }
 

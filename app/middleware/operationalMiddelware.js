@@ -1,10 +1,11 @@
 const db = require('../config/database')
 const moment = require('moment')
+const winston = require('../helpers/winston.logger')
+moment.locale('id');
 
 const middleware = async (req, res, next) => {
-
+    let result = {}
     try {
-        console.log("[*] operational middleware", req.d_login)
 
         const parameterSetting = await db('sot.t_m_setting').select([db.raw("TRIM(c_setting) AS c_setting, TRIM(e_setting) AS e_setting, TRIM(n_setting) AS n_setting")])
             .whereIn('c_setting', ['SO', 'EO', 'NO'])
@@ -12,13 +13,20 @@ const middleware = async (req, res, next) => {
                 b_active: true,
                 d_end : null
             })
-            console.log("parameter setting : ", parameterSetting)
+
         if (parameterSetting.length != 3) {
-            return res.status(200).send({
+            result = {
                 status: '94',
                 message: "Terminal sedang tidak beropresi !",
                 data: {}
-            })
+            }
+
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)  
         }
 
         const isLoginBefore = await db('ctm.t_d_login AS tdl')
@@ -36,11 +44,18 @@ const middleware = async (req, res, next) => {
             .orderBy('tdl.d_login', 'desc')
 
         if (!isLoginBefore) {
-            return res.status(200).send({
+            result = {
                 status: '95',
                 message: "Belum melakukan openshift !",
                 data: {}
-            })
+            }
+
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)  
         }
 
         let parameter = {}
@@ -49,50 +64,84 @@ const middleware = async (req, res, next) => {
             if(item.c_setting == 'EO') parameter = {...parameter, ...{EO: item.e_setting}};
             if(item.c_setting == 'NO') parameter = {...parameter, ...{NO: item.e_setting}};
         });
-        console.log("Ini : ",parameter)
             
         const startOT = moment(isLoginBefore.d_login).format('YYYY-MM-DD') + ' ' + parameter.SO
         // end date operatrional +1day
         let endOT = ""
         if(parameter.NO.toUpperCase() == "TRUE"){
-            console.log("[*] Overningt : true");
             endOT = moment(isLoginBefore.d_login).add(1, 'day').format('YYYY-MM-DD') + ' ' + parameter.EO
         }else{
-            console.log("[*] Overningt : false");
             endOT = moment(isLoginBefore.d_login).format('YYYY-MM-DD') + ' ' + parameter.EO
         }
-        console.log("10 : ",startOT, endOT)
 
         const currentTime = moment()
 
         if (currentTime.isBefore(startOT)) {
-            return res.status(200).send({
+            result = {
                 status: '96',
                 message: "Sesi tidak valid, Silahkan melakukan login ulang",
                 data: {}
-            })
+            }
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)  
         }
 
         if (currentTime.isAfter(endOT)) {
-            return res.status(200).send({
+            result = {
                 status: '97',
                 message: "Silahkan melakukan closeshift !",
                 data: {}
-            })
+            }
+
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result) 
+        }
+
+        const server = await db.select([db.raw("TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') AS current_time")]).first()
+
+        if(Math.abs(moment(server.current_time).diff(currentTime, 'second')) > 60){
+            result = {
+                status: '05',
+                message: 'Waktu terminal dan server melebihi batas selisih !',
+                data: {location : "Operrational middleware"}
+            }
+
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)  
         }
 
         let generate = await db('ecms.t_m_request_code').first(db.raw(`'REQ' || to_char(CURRENT_TIMESTAMP, 'YYYYMMDDHH24MISSMS') as c_unique`))
         req.c_unique = generate.c_unique
-        next();
-    } catch (e) {
-        console.error("[x] message : ", e.message)
-        return res.status(200).send({ //500
-            status: '99',
-            message: "Terjadi Kesalahan System !",
-            data: {}
-        })
-    }
 
+        next();
+
+    } catch (e) {
+        
+        result = { //500
+            status: '99',
+            message:  "Terjadi kesalahan system !",
+            data: {}
+        }
+
+        // log info
+        winston.logger.info(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
+    }
 
 }
 
