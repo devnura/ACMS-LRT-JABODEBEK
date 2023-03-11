@@ -1,3 +1,11 @@
+/* 
+ ;==========================================
+ ; Title    : JWT Ferify
+ ; Author   : Devnura
+ ; Date     : 2023-03-11
+ ;==========================================
+*/
+
 const {
     ACCESS_TOKEN_SECRET
 } = require('../config/secret')

@@ -1,3 +1,11 @@
+/* 
+ ;==========================================
+ ; Title    : Perso Validate
+ ; Author   : Devnura
+ ; Date     : 2023-03-11
+ ;==========================================
+*/
+
 /*
     Config
  */
@@ -10,6 +18,8 @@ const getMasterCard = require('./services/getMasterCard')
 const getMessage = require('./services/getMessage')
 
 const controller = async (req, res) => {
+    let result = {}
+	const location = "PERSO CONTOLLER"
     try {
 
         let {
@@ -27,7 +37,6 @@ const controller = async (req, res) => {
                     data: {}
                 })
             }
-
 
             const data = {
                 i_card_type: masterCard?.i_card_type  || "",

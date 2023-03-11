@@ -9,7 +9,8 @@ const {
 
 const jwtFerify = require('../../middleware/jwtFerify')
 const operationalMiddelware = require('../../middleware/operationalMiddelware')
+const requestMiddelware = require('../../middleware/requestMiddelware')
 
-router.post('/', jwtFerify, addstock_rules(), validate, operationalMiddelware, addstock)
+router.post('/', jwtFerify, addstock_rules(), validate, operationalMiddelware, requestMiddelware, addstock)
 
 module.exports = router

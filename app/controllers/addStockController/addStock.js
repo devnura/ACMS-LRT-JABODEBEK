@@ -1,3 +1,11 @@
+/* 
+ ;==========================================
+ ; Title    : Add Stock
+ ; Author   : Devnura
+ ; Date     : 2023-03-11
+ ;==========================================
+*/
+
 /*
     Config
  */
@@ -55,6 +63,8 @@ const controller = async (req, res) => {
 				);
 				return res.status(200).send(result)  
 			}
+			
+			await db('ecms.t_m_request_code').insert({'c_request_code' : body.c_unique})
 
 			result = {
 				status: '00',
