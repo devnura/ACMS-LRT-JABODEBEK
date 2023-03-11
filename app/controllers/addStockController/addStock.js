@@ -13,6 +13,7 @@ const getAddStock = require('./services/getAddStock')
 const controller = async (req, res) => {
 	console.log("SAMPE SINI NIH")
 	let result = {}
+	const location = "ADD STOCK CONTOLLER"
 	try {
 
 		let {
@@ -35,7 +36,7 @@ const controller = async (req, res) => {
 
 				// log info
 				winston.logger.info(
-					`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+					`${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
 				);
 
 				return res.status(200).send(result)   
@@ -51,7 +52,7 @@ const controller = async (req, res) => {
 				
 				// log info
 				winston.logger.warn(
-					`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+					`${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
 				);
 				return res.status(200).send(result)  
 			}
@@ -59,12 +60,12 @@ const controller = async (req, res) => {
 			result = {
 				status: '00',
 				message: 'success',
-				data: {}
+				data: addstock
 			}
 
 			// log info
 			winston.logger.info(
-				`${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+				`${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
 			);
 			return res.status(200).send(result)  
 
@@ -81,8 +82,8 @@ const controller = async (req, res) => {
         }
 
         // log info
-        winston.logger.info(
-            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        winston.logger.error(
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
         );
 
         return res.status(200).send(result)

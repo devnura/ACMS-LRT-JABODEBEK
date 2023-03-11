@@ -14,7 +14,7 @@ const service = async (body, trx) => {
         "c_desc": body.c_desc,
         "c_unique": body.c_unique,
         "d_addstock": body.d_addstock_at
-    }, "i_id").onConflict('c_unique')
+    }, ["i_id", "c_login"]).onConflict('c_unique')
     .ignore()
     
     return rows

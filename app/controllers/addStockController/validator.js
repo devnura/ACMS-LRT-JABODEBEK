@@ -27,8 +27,8 @@ const addstock_rules = () => {
     ]
 }
 
-const validate = async (req, res, next) => {
-    const errors = await validationResult(req)
+const validate = (req, res, next) => {
+    const errors = validationResult(req)
 
     const requestId = helper.getUniqueCode()
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`  
@@ -46,10 +46,10 @@ const validate = async (req, res, next) => {
 
         // log warn
         winston.logger.warn(
-            `${requestId} ${requestUrl} [validate] RESPONSE : ${JSON.stringify(result)}`
+            `${requestId} | ${requestUrl} | LOCACTRION : VALIDATE | RESPONSE : ${JSON.stringify(result)}`
         );
 
-        return res.status(500).json(result);
+        return res.status(403).json(result);
     }
 
     req.requestId = requestId
