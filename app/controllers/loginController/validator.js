@@ -37,7 +37,7 @@ const validate = (req, res, next) => {
 
         // log warn
         winston.logger.warn(
-            `${requestId} | ${requestUrl} [validate] | RESPONSE : ${JSON.stringify(result)}`
+            `${requestId} | ${requestUrl} | LOCATION : VALIDATE | RESPONSE : ${JSON.stringify(result)}`
         );
 
         return res.status(403).json(result);

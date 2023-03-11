@@ -1,8 +1,6 @@
 // const db = require('../../../config/database')
 
 const service = async (c_pos, trx) => {
-    console.log("[*] Getting terminal status : ")
-
     const rows = await trx.first(
             "tdl.i_id",
             "tdl.e_fullname",
@@ -14,8 +12,6 @@ const service = async (c_pos, trx) => {
             "tdl.c_login_before" : null,
             "tdl.i_login_status" : "1",
         })
-
-    if(rows)console.log("[*] RESULT TERMINAL : ", rows)
 
     return rows
 }

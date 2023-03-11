@@ -3,7 +3,6 @@ const { body } = require('express-validator')
 const moment = require('moment')
 const service = async (body, user, terminal, trx) => {
 
-    console.log("[*] OPENSHIFT...")
     const device_type = "2"
     // const trans = await db.transaction(async trx => {
  

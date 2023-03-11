@@ -1,6 +1,4 @@
 const service = async (body, trx) => {
-    console.log("[*] Getting t_m_pos : ")
-
     let query = `
  
     select 
@@ -283,8 +281,6 @@ const service = async (body, trx) => {
     `
 
     const loginInfo = await trx.raw(query)
-
-    console.log(loginInfo.rows[0])
 
     return loginInfo.rows[0]
 
