@@ -1,19 +1,23 @@
 // const db = require('../../../config/database')
+const winston = require('../../../helpers/winston.logger')
 
-const service = async (body, terminal, n_user, c_login, trx) => {
+const service = async (body, terminal, n_user, c_login, trx, req) => {
 
     let i_perso_status = body.i_perso_status
     if (body.c_status == "00") {
-        const perso = await trx('ecms.t_m_card').first(trx.raw('COALESCE(i_perso_status, 0) AS i_perso_status')).where({
-            c_uid: body.c_uid,
-            c_card_number: body.c_card_number
-        })
+        const perso = await trx('ecms.t_m_card')
+            .first(trx.raw('COALESCE(i_perso_status, 0) AS i_perso_status')).where({
+                c_uid: body.c_uid,
+                c_card_number: body.c_card_number
+            })
+        // log debug
+        winston.logger.debug(`${req.requestId} ${req.requestUrl} result perso : ${perso}`);
 
-	if(!perso) return false
+	    if(!perso) return false
 
         if((i_perso_status == "1" && perso.i_perso_status != "1" ) || (i_perso_status == "0" && perso.i_perso_status == "0")){
-
-            console.log("[trx] running transaction t_m_card...")
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} Updating master card`);
             const card = await trx('ecms.t_m_card').update({
                 i_perso_status: '1',
                 n_perso: n_user,
@@ -22,8 +26,11 @@ const service = async (body, terminal, n_user, c_login, trx) => {
                 c_uid: body.c_uid,
                 c_card_number: body.c_card_number
             })
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result card : ${JSON.stringify(card)}`);
 
-            console.log("[trx] running transaction t_d_trx_perso...")
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} Updating card perso`);
             const t_d_trx_perso = await trx('ecms.t_d_trx_perso').insert({
                 c_login: c_login,
                 i_card_type: body.i_card_type,
@@ -40,23 +47,24 @@ const service = async (body, terminal, n_user, c_login, trx) => {
                 n_perso_by: n_user,
                 d_perso_at: body.d_active_date,
             })
-
-            if (t_d_trx_perso) console.log("[trx] Transaction to t_d_trx_perso : Success")
-
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result card perso : ${JSON.stringify(t_d_trx_perso)}`);
         }
 
         i_perso_status = 1
-
-        await trx('ecms.t_m_card').update({
+        // log debug
+        winston.logger.debug(`${req.requestId} ${req.requestUrl} Updating master card set already use true`);
+        const usecard = await trx('ecms.t_m_card').update({
             b_already_used: true,
-        }, 'i_perso_status').where({
+        }, ['i_perso_status', 'b_already_used']).where({
             c_uid: body.c_uid,
             c_card_number: body.c_card_number
         })
-        
-        console.log(`[*] Inserting Activation..`)
+        // log debug
+        winston.logger.debug(`${req.requestId} ${req.requestUrl} result usecard : ${JSON.stringify(usecard)}`);
 
-        console.log("[trx] running transaction t_m_card_owner_detail...")
+        // log debug
+        winston.logger.debug(`${req.requestId} ${req.requestUrl} Updating card owner detail`);
         const updateCardOwnerDetail = await trx('ecms.t_m_card_owner_detail')
             .update({
                 c_uid: body.c_uid,
@@ -69,10 +77,11 @@ const service = async (body, terminal, n_user, c_login, trx) => {
                 n_identity_number: body.n_identity_number,
                 c_registration_code: body.c_registration_code
             })
+        // log debug
+        winston.logger.debug(`${req.requestId} ${req.requestUrl} result card owner detail : ${JSON.stringify(updateCardOwnerDetail)}`);
 
-        if (updateCardOwnerDetail) console.log("[trx] Success update t_m_card_owner_detail")
-
-        console.log("[trx] running transaction t_d_trx_card_registration...")
+        // log debug
+        winston.logger.debug(`${req.requestId} ${req.requestUrl} Updating card registration`);
         var updateCardRegistration = await trx('ecms.t_d_trx_card_registration')
             .update({
                 c_uid: body.c_uid,
@@ -88,42 +97,46 @@ const service = async (body, terminal, n_user, c_login, trx) => {
                 c_registration_code: body.c_registration_code,
                 n_identity_number: body.n_identity_number
             })
-
-        if (updateCardRegistration) console.log("[trx] Success update t_d_trx_card_registration returning i_id : ", updateCardRegistration[0])
-
+            // log debug
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result card registration : ${JSON.stringify(updateCardRegistration)}`);
     }
 
-    console.log("[trx] running transaction t_d_trx_card_registration_history...")
+    // log debug
+    winston.logger.debug(`${req.requestId} ${req.requestUrl} Updating card registration`);
     const card_registration = await trx('ecms.t_d_trx_card_registration')
-                                .first('i_id')
-                                .where({
-                                    c_registration_code: body.c_registration_code
-                                })
-
+            .first('i_id')
+            .where({
+                c_registration_code: body.c_registration_code
+            })
+    // log debug
+    winston.logger.debug(`${req.requestId} ${req.requestUrl} result card registration : ${JSON.stringify(card_registration)}`);
+    
+    // log debug
+    winston.logger.debug(`${req.requestId} ${req.requestUrl} Updating card registration history`);
     const t_d_trx_card_registration_history = await trx('ecms.t_d_trx_card_registration_history').insert({
-        i_card_registration: card_registration.i_id,
-        c_registration_code: body.c_registration_code,
-        n_identity_number: body.n_identity_number,
-        i_card_type: body.i_card_type,
-        c_uid: body.c_uid,
-        c_card_number: body.c_card_number,
-        c_specific_station: body.c_specific_station != "" ? body.c_specific_station : null,
-        i_card_active_time_in_days: body.i_card_active_time_in_days,
-        d_registration: body.d_active_date,
-        n_activation: n_user,
-        d_activation: body.d_active_date,
-        c_pos: body.c_pos,
-        c_station: body.c_station,
-        n_station: terminal?.n_station || null,
-        d_active_date: body.d_active_date,
-        d_expired_date: body.d_expired_date,
-        c_reader: body.c_reader,
-        c_status: body.c_status,
-        c_login: body.c_login,
-        n_activation: n_user
-    }, 'c_status')
-
-    if (t_d_trx_card_registration_history) console.log("[trx] Transaction to t_d_trx_card_registration_history : Success")
+            i_card_registration: card_registration.i_id,
+            c_registration_code: body.c_registration_code,
+            n_identity_number: body.n_identity_number,
+            i_card_type: body.i_card_type,
+            c_uid: body.c_uid,
+            c_card_number: body.c_card_number,
+            c_specific_station: body.c_specific_station != "" ? body.c_specific_station : null,
+            i_card_active_time_in_days: body.i_card_active_time_in_days,
+            d_registration: body.d_active_date,
+            n_activation: n_user,
+            d_activation: body.d_active_date,
+            c_pos: body.c_pos,
+            c_station: body.c_station,
+            n_station: terminal?.n_station || null,
+            d_active_date: body.d_active_date,
+            d_expired_date: body.d_expired_date,
+            c_reader: body.c_reader,
+            c_status: body.c_status,
+            c_login: body.c_login,
+            n_activation: n_user
+        }, 'c_status')
+    // log debug
+    winston.logger.debug(`${req.requestId} ${req.requestUrl} result card registration history : ${JSON.stringify(t_d_trx_card_registration_history)}`);
     
     if(body.c_status != "00") return false
     

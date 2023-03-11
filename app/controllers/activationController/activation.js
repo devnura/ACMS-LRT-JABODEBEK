@@ -2,6 +2,7 @@
     Config
  */
 const db = require('../../config/database')
+const winston = require('../../helpers/winston.logger')
 
 /*
     Services
@@ -9,9 +10,11 @@ const db = require('../../config/database')
 const insertActivation = require('./services/insertActivation')
 const getTerminal = require('./services/getTerminal')
 const getMessage = require('./services/getMessage')
+const validateRequestCode = require('./services/validateRequestCode')
 
 const controller = async (req, res) => {
-
+    let result = {}
+	const location = "ACTIVATION"
     try {
 
         let {
@@ -21,14 +24,34 @@ const controller = async (req, res) => {
         await db.transaction(async trx => {
 
             const terminal = await getTerminal(body.c_pos, trx)
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result terminal : ${terminal}`);
+            if(!terminal){
+                result = {
+                    status: '01',
+                    message: 'TERMINAL TIDAK DITEMUKAN !',
+                    data: {
+                        'c_uid': body.c_uid || '',
+                        "c_card_number": body.c_card_number || '',
+                        "i_perso_status": body.i_perso_status || '',
+                        "c_status": body.c_status || ''
+                    }
+                }
 
-            await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique})
-            
-            const activation = await insertActivation(body, terminal, req.n_user, req.c_login, trx)
-            if (!activation) {
-                const message = await getMessage(body.i_card_type, 'CARD ACTIVATION', '01', trx)
+                // log info
+                winston.logger.info(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
 
-                return res.status(200).send({
+                return res.status(200).send(result)
+                 
+            }
+
+            const validaterequest = await validateRequestCode(body, trx)
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result validaterequest : ${validaterequest}`);
+            if(validaterequest){
+                const message = await getMessage(body.i_card_type, 'CARD ACTIVATION', '01', trx, req)
+
+                result = {
                     status: message?.c_status || '01',
                     message: message?.n_desc || 'KARTU GAGAL DIAKTIVASI !',
                     data: {
@@ -37,12 +60,42 @@ const controller = async (req, res) => {
                         "i_perso_status": body.i_perso_status || '',
                         "c_status": body.c_status || ''
                     }
-                })
+                }
+
+                // log info
+                winston.logger.info(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result) 
+            }
+
+            const activation = await insertActivation(body, terminal, req.n_user, req.c_login, trx)
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result activation : ${activation}`);
+            if (!activation) {
+                const message = await getMessage(body.i_card_type, 'CARD ACTIVATION', '01', trx)
+
+                result = {
+                    status: message?.c_status || '01',
+                    message: message?.n_desc || 'KARTU GAGAL DIAKTIVASI !',
+                    data: {
+                        'c_uid': body.c_uid || '',
+                        "c_card_number": body.c_card_number || '',
+                        "i_perso_status": body.i_perso_status || '',
+                        "c_status": body.c_status || ''
+                    }
+                }
+                // log info
+				winston.logger.warn(
+					`${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+				);
+
+				return res.status(200).send(result)  
             }
 
             // sukses
             const message = await getMessage(body.i_card_type, 'CARD ACTIVATION', "00", trx)
-            return res.status(200).send({
+            result = {
                 status: message.c_status || body.c_status,
                 message: message.n_desc || 'Sukses',
                 data: {
@@ -51,16 +104,30 @@ const controller = async (req, res) => {
                     "i_perso_status": '1',
                     "c_status": body.c_status
                 }
-            })
+            }
+            // log info
+            winston.logger.info(
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)  
         })
 
     } catch (e) {
         console.error("[x] message : ", e.message)
-        return res.status(200).send({ //500
+        
+        result = { //500
             status: '99',
-            message: "Terjadi kesalahan system !",
+            message:  "Terjadi kesalahan system !",
             data: {}
-        })
+        }
+
+        // log info
+        winston.logger.error(
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
     }
 }
 

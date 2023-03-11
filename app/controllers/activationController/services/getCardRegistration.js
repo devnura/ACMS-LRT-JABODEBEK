@@ -1,6 +1,4 @@
 const service = async (c_registration_code, trx) => {
-    console.log(`[*] Getting card registration.. `)
-
     const rows = await trx
         .first(
             'tdtcr.n_identity_number',
@@ -40,8 +38,7 @@ const service = async (c_registration_code, trx) => {
             "tdtcr.n_identity_number": c_registration_code,
             "tdtcr.b_active": true
         })
-        // tambah or where n_identity_number
-        console.log('[*] Result : ', rows)
+
     if (!rows) return false
 
     return rows

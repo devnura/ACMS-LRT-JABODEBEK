@@ -33,16 +33,34 @@ const activation_rules = () => {
     ]
 }
 
-const validate = async (req, res, next) => {
-    const errors = await validationResult(req)
+const validate = (req, res, next) => {
+    const errors = validationResult(req)
+
+    const requestId = helper.getUniqueCode()
+    const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`  
+    // log info
+    winston.logger.info(
+        `${requestId} ${requestUrl} REQUEST : ${JSON.stringify(req.body)}`
+    );
+
     if (!errors.isEmpty()) {
-        return res.status(500).json({
+        const result ={
             status: '98',
             message: errors.array()[0].msg,
             data: {}
-        });
+        }
+
+        // log warn
+        winston.logger.warn(
+            `${requestId} | ${requestUrl} | LOCACTRION : VALIDATE | RESPONSE : ${JSON.stringify(result)}`
+        );
+
+        return res.status(403).json(result);
     }
-    req = req.body
+
+    req.requestId = requestId
+    req.requestUrl = requestUrl
+    
     next()
 }
 

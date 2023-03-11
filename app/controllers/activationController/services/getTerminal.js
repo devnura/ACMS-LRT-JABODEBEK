@@ -1,7 +1,6 @@
 // const db = require('../../../config/database')
 
 const service = async (c_pos, trx) => {
-    console.log("[*] GETTING TERMINAL : ")
 
     const rows = await trx.first(
             "tmp.i_id",
@@ -18,8 +17,6 @@ const service = async (c_pos, trx) => {
         .where({
             "tmp.c_pos": c_pos
         })
-
-    if(rows)console.log("[*] RESULT TERMINAL : ", rows)
 
     return rows
 }

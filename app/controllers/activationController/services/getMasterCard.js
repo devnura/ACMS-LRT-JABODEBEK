@@ -1,6 +1,5 @@
 const service = async (body, trx) => {
-    console.log(`[*] Checkink uid.. `)
-    
+
     const rows = await trx
         .first(
             'tmc.c_uid',
@@ -24,7 +23,7 @@ const service = async (body, trx) => {
             'tmc.c_uid': body.c_uid,
             'tmc.b_active': true
         })
-console.log(rows)
+        
     return rows
 }
 
