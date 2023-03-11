@@ -19,4 +19,4 @@ const service = async (body, trx) => {
     return rows
 }
 
-export default service;
+module.exports = service;
