@@ -125,7 +125,8 @@ const middleware = async (req, res, next) => {
             return res.status(200).send(result) 
         }
 
-        let generate = await db('ecms.t_m_request_code').first(db.raw(`'REQ' || to_char(CURRENT_TIMESTAMP, 'YYYYMMDDHH24MISSMS') as c_unique`))
+        let generate = await db.first(db.raw(`'REQ' || to_char(CURRENT_TIMESTAMP, 'YYYYMMDDHH24MISSMS') as c_unique`))
+        
         req.c_unique = generate.c_unique
 
         next();
