@@ -23,8 +23,7 @@ const getSetting = require('./services/getSetting')
 const getTerminal = require("./services/getTerminal")
 const getOpenShift = require("./services/openShift")
 const getTerminalStatus = require('./services/getTerminalStatus')
-const checkForUserLogin = require('./services/checkForUserLogin').default
-const { add } = require('nodemon/lib/rules')
+const checkForUserLogin = require('./services/checkForUserLogin')
 
 const controller = async (req, res) => {
     let result = {}
