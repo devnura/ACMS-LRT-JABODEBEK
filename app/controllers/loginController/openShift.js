@@ -41,11 +41,9 @@ const controller = async (req, res) => {
         await db.transaction(async trx => {
             
             // getting user
-            // log debug
-			winston.logger.debug(`${req.requestId} ${req.requestUrl} getting user...`);
             let user = await getUserByUsername(username, trx);
             // log debug
-			winston.logger.debug(`${req.requestId} ${req.requestUrl} result user : ${user}`);
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result user : ${JSON.stringify(user)}`);
 			
             if (!user) {
                 result = {
@@ -63,6 +61,9 @@ const controller = async (req, res) => {
 
             // checking password
             let matchPassword = await checkPassword(user, password);
+            // log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result matchPassword : ${JSON.stringify(matchPassword)}`);
+		
             if (!matchPassword) {
                 result = {
                     status: "02",
@@ -93,6 +94,9 @@ const controller = async (req, res) => {
 
             // getting terminal
             const terminal = await getTerminal(c_pos, trx)
+            // log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result terminal : ${JSON.stringify(terminal)}`);
+		
             if (!terminal) {
                 result = {
                     status: "04",
@@ -126,6 +130,9 @@ const controller = async (req, res) => {
 
             // get terminal status from t_d_login where c_pos = request
             const terminalStatus = await getTerminalStatus(c_pos, trx)
+            // log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result terminalStatus : ${JSON.stringify(terminalStatus)}`);
+		
             if (terminalStatus && terminalStatus.n_username != user.n_username) {
                 result = {
                     status: '05',
@@ -142,6 +149,9 @@ const controller = async (req, res) => {
 
             // check if user login on another devices
             const checkUser = await checkForUserLogin(req.body, trx)
+            // log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result checkUser : ${JSON.stringify(checkUser)}`);
+		
             if (checkUser) {
                 result = {
                     status: '06',
@@ -157,6 +167,9 @@ const controller = async (req, res) => {
             }
 
             const openshift = await getOpenShift(req.body, user, terminal, trx)
+            // log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result openshift : ${JSON.stringify(openshift)}`);
+		
             if (!openshift) {
                 result = {
                     status: "07",
@@ -174,7 +187,9 @@ const controller = async (req, res) => {
             const d_login = moment(openshift.d_login).format('YYYY-MM-DD')
             
             const addStock = await getAddStock(openshift.c_login, trx)
-
+            // log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result addStock : ${JSON.stringify(addStock)}`);
+		
             let token = jwt.sign({
                 c_login: openshift.c_login,
                 d_login: d_login,
