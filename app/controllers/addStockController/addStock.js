@@ -20,8 +20,12 @@ const controller = async (req, res) => {
 		} = req || ""
 		
 		await db.transaction(async trx => {
+			// log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} checking add stock...`);
 			const checkAddStock = await getAddStock(body.c_login, trx)
-
+			// log debug
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result cardOwnerDetail : ${checkAddStock}`);
+			
 			if(!checkAddStock && body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0"){
 				result = {
 					status: '00',

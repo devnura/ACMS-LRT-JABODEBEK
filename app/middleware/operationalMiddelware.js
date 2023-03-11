@@ -5,6 +5,7 @@ moment.locale('id');
 
 const middleware = async (req, res, next) => {
     let result = {}
+    const location = "OPERATIONAL MIDDLEWARE"
     try {
 
         const parameterSetting = await db('sot.t_m_setting').select([db.raw("TRIM(c_setting) AS c_setting, TRIM(e_setting) AS e_setting, TRIM(n_setting) AS n_setting")])
@@ -23,7 +24,7 @@ const middleware = async (req, res, next) => {
 
             // log info
             winston.logger.warn(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
             );
 
             return res.status(200).send(result)  
@@ -46,13 +47,13 @@ const middleware = async (req, res, next) => {
         if (!isLoginBefore) {
             result = {
                 status: '95',
-                message: "Belum melakukan openshift !",
+                message: "Silahkan Melakukan openshift !",
                 data: {}
             }
 
             // log info
             winston.logger.warn(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
             );
 
             return res.status(200).send(result)  
@@ -75,6 +76,25 @@ const middleware = async (req, res, next) => {
         }
 
         const currentTime = moment()
+        const server = await db.select([db.raw("TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') AS current_time")]).first()
+
+        if(Math.abs(moment(server.current_time).diff(currentTime, 'second')) > 60){
+            result = {
+                status: '05',
+                message: 'Waktu terminal dan server melebihi batas selisih !',
+                data: {
+                    server : server.current_time,
+                    service: currentTime
+                }
+            }
+
+            // log info
+            winston.logger.warn(
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)  
+        }
 
         if (currentTime.isBefore(startOT)) {
             result = {
@@ -84,7 +104,7 @@ const middleware = async (req, res, next) => {
             }
             // log info
             winston.logger.warn(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
             );
 
             return res.status(200).send(result)  
@@ -93,33 +113,16 @@ const middleware = async (req, res, next) => {
         if (currentTime.isAfter(endOT)) {
             result = {
                 status: '97',
-                message: "Silahkan melakukan closeshift !",
+                message: `Sesi melebihi batas waktu operasional ${endOT}, Silahkan melakukan closeshift !`,
                 data: {}
             }
 
             // log info
             winston.logger.warn(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
             );
 
             return res.status(200).send(result) 
-        }
-
-        const server = await db.select([db.raw("TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') AS current_time")]).first()
-
-        if(Math.abs(moment(server.current_time).diff(currentTime, 'second')) > 60){
-            result = {
-                status: '05',
-                message: 'Waktu terminal dan server melebihi batas selisih !',
-                data: {location : "Operrational middleware"}
-            }
-
-            // log info
-            winston.logger.warn(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
-            );
-
-            return res.status(200).send(result)  
         }
 
         let generate = await db('ecms.t_m_request_code').first(db.raw(`'REQ' || to_char(CURRENT_TIMESTAMP, 'YYYYMMDDHH24MISSMS') as c_unique`))
@@ -132,12 +135,12 @@ const middleware = async (req, res, next) => {
         result = { //500
             status: '99',
             message:  "Terjadi kesalahan system !",
-            data: {}
+            data: e.message
         }
 
         // log info
-        winston.logger.info(
-            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        winston.logger.warn(
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
         );
 
         return res.status(200).send(result)

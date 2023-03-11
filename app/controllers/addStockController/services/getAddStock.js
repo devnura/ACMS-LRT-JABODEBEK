@@ -4,7 +4,6 @@ const service = async (c_login, trx) => {
         .where({
             "tda.c_login": c_login
         })
-        console.log("Result Addstock :", rows)
     if(rows[0].count > 0) return false 
     return true
 }

@@ -23,7 +23,7 @@ const addstock_rules = () => {
         // check('q_bca_card').notEmpty().withMessage('q_bca_card is required.'),
         // check('q_dki_card').notEmpty().withMessage('q_dki_card is required.'),
         check('c_unique').notEmpty().withMessage('c_unique_code is required.').escape().trim(),
-        check('d_addstock_at').notEmpty().withMessage('d_addstock_at is required.').isISO8601().escape().trim(),
+        check('d_addstock_at').notEmpty().withMessage('d_addstock_at is required.').isISO8601().withMessage("Invalid d_addstock_at format, except YYYY-MM-DD HH:MM:SS").escape().trim(),
     ]
 }
 
@@ -46,7 +46,7 @@ const validate = async (req, res, next) => {
 
         // log warn
         winston.logger.warn(
-            `${requestId} ${requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            `${requestId} ${requestUrl} [validate] RESPONSE : ${JSON.stringify(result)}`
         );
 
         return res.status(500).json(result);
