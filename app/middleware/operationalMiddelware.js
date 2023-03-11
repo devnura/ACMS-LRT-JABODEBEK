@@ -47,7 +47,7 @@ const middleware = async (req, res, next) => {
         if (!isLoginBefore) {
             result = {
                 status: '95',
-                message: "Silahkan Melakukan openshift !",
+                message: "Sesi tidak valid, silahkan Melakukan openshift !",
                 data: {}
             }
 
@@ -139,7 +139,7 @@ const middleware = async (req, res, next) => {
         }
 
         // log info
-        winston.logger.warn(
+        winston.logger.error(
             `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
         );
 
