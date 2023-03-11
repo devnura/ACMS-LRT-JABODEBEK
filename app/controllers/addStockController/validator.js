@@ -34,7 +34,7 @@ const validate = (req, res, next) => {
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`  
     // log info
     winston.logger.info(
-        `${requestId} ${requestUrl} REQUEST : ${JSON.stringify(req.body)}`
+        `${requestId} | ${requestUrl} | LOCACTRION : VALIDATE | REQUEST : ${JSON.stringify(req.body)}`
     );
 
     if (!errors.isEmpty()) {

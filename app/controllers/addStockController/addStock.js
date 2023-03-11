@@ -11,7 +11,6 @@ const _addStock = require('./services/_addStock')
 const getAddStock = require('./services/getAddStock')
 
 const controller = async (req, res) => {
-	console.log("SAMPE SINI NIH")
 	let result = {}
 	const location = "ADD STOCK CONTOLLER"
 	try {
@@ -25,7 +24,7 @@ const controller = async (req, res) => {
 			winston.logger.debug(`${req.requestId} ${req.requestUrl} checking add stock...`);
 			const checkAddStock = await getAddStock(body.c_login, trx)
 			// log debug
-			winston.logger.debug(`${req.requestId} ${req.requestUrl} result cardOwnerDetail : ${checkAddStock}`);
+			winston.logger.debug(`${req.requestId} ${req.requestUrl} result checkAddStock : ${checkAddStock}`);
 			
 			if(!checkAddStock && body.q_employee_card == "0" && body.q_master_card == "0" && body.q_tenant_card == "0"){
 				result = {
