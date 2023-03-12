@@ -25,8 +25,6 @@ const controller = async (req, res) => {
         let { body } = req 
 
         await db.transaction(async trx => {
-
-            await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique})
             
             const replacement = await insertReplacement(body, trx)
             if (!replacement || body.c_status != "00") {
@@ -44,6 +42,8 @@ const controller = async (req, res) => {
                 return res.status(200).send(result)
             }
 
+            await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique})
+            
             const message = await getMessage('0', 'CARD REPLACEMENT', '00', trx)
             result = {
                 status: message?.c_status || "00",
@@ -56,7 +56,7 @@ const controller = async (req, res) => {
             );
 
             return res.status(200).send(result)  
-            
+
         })
 
     } catch (e) {
