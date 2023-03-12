@@ -16,6 +16,7 @@ const getMasterCard = require('./services/getMasterCard')
 
 const controller = async (req, res) => {
     let result = {}
+    const location = "UPDATE CARD EXPIRED VALIDATE"
     try {
 
         let {
@@ -24,10 +25,7 @@ const controller = async (req, res) => {
 
         await db.transaction(async trx => {
             
-            // log debug
-            winston.logger.debug(`${req.requestId} ${req.requestUrl} getting cardOwnerDetail...`);
-
-            const cardOwnerDetail = await getCardOwnerDetail(body.c_card_number, trx)
+            const cardOwnerDetail = await getCardOwnerDetail(body.c_card_number, body.c_uid, trx)
 
             // log debug
             winston.logger.debug(`${req.requestId} ${req.requestUrl} result cardOwnerDetail : ${JSON.stringify(cardOwnerDetail)}`);
@@ -43,15 +41,12 @@ const controller = async (req, res) => {
                 }
 
                 // log info
-                winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)
             }
-
-            // log debug
-            winston.logger.debug(`${req.requestId} ${req.requestUrl} getting masterCard...`)
 
             const masterCard = await getMasterCard(body.i_card_type, body.c_card_number, trx)
 
@@ -68,8 +63,8 @@ const controller = async (req, res) => {
                 }
 
                 // log info
-                winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)
@@ -83,12 +78,9 @@ const controller = async (req, res) => {
             let minUpdaeteExpiredDate = ''
             let endOfMonth = ''
 
-            // log debug
-            winston.logger.debug(`${req.requestId} ${req.requestUrl} getting cardERenewal...`)
-
             const cardERenewal = await getSetting('ECMS04', trx)
             // log debug
-            winston.logger.debug(`${req.requestId} ${req.requestUrl} result cardERenewal : ${JSON.stringify(masterCard)}`);
+            winston.logger.debug(`${req.requestId} ${req.requestUrl} result cardERenewal : ${JSON.stringify(cardERenewal)}`);
 
             if (!cardERenewal?.e_setting) {
                 const message = await getMessage(0, 'UPDATE CARD EXPIRED', "08", trx)
@@ -99,8 +91,8 @@ const controller = async (req, res) => {
                 }
 
                 // log info
-                winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)
@@ -119,8 +111,8 @@ const controller = async (req, res) => {
                     }
 
                     // log info
-                    winston.logger.info(
-                        `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                    winston.logger.warn(
+                        `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                     );
 
                     return res.status(200).send(result)
@@ -159,7 +151,6 @@ const controller = async (req, res) => {
 
             if (cardERenewal?.e_setting.toUpperCase() == 'FALSE') {
                 const cardRenewalPeriod = await getSetting('ECMS03', trx)
-                console.log("Card renewal mode : ", 2)
                 if (!cardRenewalPeriod?.e_setting) {
                     const message = await getMessage(0, 'UPDATE CARD EXPIRED', "08", trx)
                     result = {
@@ -169,7 +160,7 @@ const controller = async (req, res) => {
                     }
 
                     // log info
-                    winston.logger.info(
+                    winston.logger.warn(
                         `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
                     );
 
@@ -227,8 +218,8 @@ const controller = async (req, res) => {
                     } || {}
                 }
                 // log info
-                winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)
@@ -250,8 +241,8 @@ const controller = async (req, res) => {
                 }
 
                 // log info
-                winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)
@@ -273,8 +264,8 @@ const controller = async (req, res) => {
                 }
 
                 // log info
-                winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)
@@ -294,8 +285,8 @@ const controller = async (req, res) => {
                     }
                 }
                 // log info
-                winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)
@@ -316,7 +307,7 @@ const controller = async (req, res) => {
             }
             // log info
             winston.logger.info(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
             );
 
             return res.status(200).send(result)
@@ -333,7 +324,7 @@ const controller = async (req, res) => {
 
         // log info
         winston.logger.info(
-            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
         );
 
         return res.status(200).send(result)

@@ -1,7 +1,5 @@
 
 const service = async (body, trx) => {
-    console.log(`[*] Updating card expired`)
-
     let station =  await trx('opr.t_m_station').first('n_station').where({
         c_station: body.c_station
     })
@@ -20,8 +18,7 @@ const service = async (body, trx) => {
 
     }
 
-    console.log(`[*] Inserting history`)
-    await trx('ecms.t_d_trx_update_card_expired').insert({
+    const result = await trx('ecms.t_d_trx_update_card_expired').insert({
         i_card_registration: body.i_card_registration,
         c_registration_code: body.c_registration_code,
         n_identity_number: body.n_identity_number,
@@ -41,9 +38,19 @@ const service = async (body, trx) => {
         c_status: body.c_status,
         c_desc: body.c_desc,
         c_login: body.c_login
-    })
+    }, [
+        "n_identity_number",
+        "c_registration_code",
+        "i_card_type",
+        "c_card_number",
+        "c_uid",
+        "d_active_date",
+        "d_expired_date",
+        "n_update_card_expired",
+        "d_update_card_expired",
+    ])
 
-    return true
+    return result
 }
 
 module.exports = service;

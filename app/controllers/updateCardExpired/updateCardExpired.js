@@ -12,6 +12,7 @@ const getMessage = require('./services/getMessage')
 
 const controller = async (req, res) => {
     let result = {}
+    const location = "UPDATE CARD EXPIRED"
     try {
 
         let {
@@ -20,8 +21,6 @@ const controller = async (req, res) => {
 
         await db.transaction(async trx => {
 
-            await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique})
-            
             const updatecardexpired = await updateCardExpired(body, trx)
             if (!updatecardexpired) {
                 const message = await getMessage("0", 'UPDATE CARD EXPIRED', '01', trx)
@@ -34,23 +33,28 @@ const controller = async (req, res) => {
 
                 // log info
                 winston.logger.info(
-                    `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result)        
 
             }
 
+            const insertRequestCode = await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique}, ["*"])
+            
             const message = await getMessage("0", 'UPDATE CARD EXPIRED', '00', trx)
              result = {
                  status: message.c_status || '00',
                  message: message.n_desc || 'Sukses',
-                 data: {}
+                 data: {
+                    updatecardexpired,
+                    insertRequestCode
+                 }
              }
 
             // log info
             winston.logger.info(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
             );
 
             return res.status(200).send(result) 
@@ -67,7 +71,7 @@ const controller = async (req, res) => {
 
         // log info
         winston.logger.info(
-            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
         );
 
         return res.status(200).send(result)

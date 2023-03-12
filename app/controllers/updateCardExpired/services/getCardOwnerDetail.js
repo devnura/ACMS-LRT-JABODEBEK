@@ -1,8 +1,6 @@
 // const db = require('../../../config/database')
 
-const service = async (c_card_number, trx) => {
-    console.log(`[*] Getting cardOwnerDetail.. `)
-
+const service = async (c_card_number, c_uid, trx) => {
     const rows = await trx.first(
             'tdtcr.i_id',
             'tmco.n_fullname',
@@ -49,6 +47,7 @@ const service = async (c_card_number, trx) => {
         })
         .where({
             'tmcod.c_card_number': c_card_number,
+            'tmcod.c_uid': c_uid,
             'tmcod.b_active': true,
         })
 
