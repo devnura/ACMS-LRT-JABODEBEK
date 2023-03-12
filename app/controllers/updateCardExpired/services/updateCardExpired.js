@@ -46,8 +46,6 @@ const service = async (body, trx) => {
         "c_uid",
         "d_active_date",
         "d_expired_date",
-        "n_update_card_expired",
-        "d_update_card_expired",
     ])
 
     return result
