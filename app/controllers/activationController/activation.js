@@ -1,3 +1,11 @@
+/* 
+ ;==========================================
+ ; Title    : Activation
+ ; Author   : Devnura
+ ; Date     : 2023-03-11
+ ;==========================================
+*/
+
 /*
     Config
  */
@@ -38,7 +46,7 @@ const controller = async (req, res) => {
                 }
 
                 // log info
-                winston.logger.info(
+                winston.logger.warn(
                     `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
@@ -49,11 +57,9 @@ const controller = async (req, res) => {
             const validaterequest = await validateRequestCode(body, trx)
             winston.logger.debug(`${req.requestId} ${req.requestUrl} result validaterequest : ${validaterequest}`);
             if(validaterequest){
-                const message = await getMessage(body.i_card_type, 'CARD ACTIVATION', '01', trx, req)
-
                 result = {
-                    status: message?.c_status || '01',
-                    message: message?.n_desc || 'KARTU GAGAL DIAKTIVASI !',
+                    status: '01',
+                    message: 'SILAHKAN LAKUKAN VALIDASI ULANG !',
                     data: {
                         'c_uid': body.c_uid || '',
                         "c_card_number": body.c_card_number || '',
@@ -63,14 +69,14 @@ const controller = async (req, res) => {
                 }
 
                 // log info
-                winston.logger.info(
+                winston.logger.warn(
                     `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
                 );
 
                 return res.status(200).send(result) 
             }
 
-            const activation = await insertActivation(body, terminal, req.n_user, req.c_login, trx)
+            const activation = await insertActivation(body, terminal, req.n_user, req.c_login, trx, req)
             winston.logger.debug(`${req.requestId} ${req.requestUrl} result activation : ${activation}`);
             if (!activation) {
                 const message = await getMessage(body.i_card_type, 'CARD ACTIVATION', '01', trx)
@@ -92,7 +98,6 @@ const controller = async (req, res) => {
 
 				return res.status(200).send(result)  
             }
-
             // sukses
             const message = await getMessage(body.i_card_type, 'CARD ACTIVATION', "00", trx)
             result = {

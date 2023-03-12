@@ -136,8 +136,10 @@ const service = async (body, terminal, n_user, c_login, trx, req) => {
             n_activation: n_user
         }, 'c_status')
     // log debug
-    winston.logger.debug(`${req.requestId} ${req.requestUrl} result card registration history : ${JSON.stringify(t_d_trx_card_registration_history)}`);
-    
+    winston.logger.debug(`${req.requestId} ${req.requestUrl} result card registration history : ${JSON.stringify(t_d_trx_card_registration_history)}`)
+
+    const requestCode = await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique}, "c_request_code")
+
     if(body.c_status != "00") return false
     
     return true

@@ -2,6 +2,8 @@ const {
     check,
     validationResult
 } = require('express-validator')
+const helper = require("../../helpers/helper")
+const winston = require("../../helpers/winston.logger");
 
 const validation_rules = () => {
     return [
@@ -40,7 +42,7 @@ const validate = (req, res, next) => {
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`  
     // log info
     winston.logger.info(
-        `${requestId} ${requestUrl} REQUEST : ${JSON.stringify(req.body)}`
+        `${requestId} | ${requestUrl} | REQUEST : ${JSON.stringify(req.body)}`
     );
 
     if (!errors.isEmpty()) {
