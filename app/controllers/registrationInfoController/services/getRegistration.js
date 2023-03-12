@@ -1,6 +1,4 @@
 const service = async (body, trx) => {
-    console.log(`[*] Getting card registration.. `)
-
     const rows = await trx
         .first(
             'tdtcr.n_identity_number',
@@ -40,15 +38,7 @@ const service = async (body, trx) => {
             "tmcod.b_active": true
         })
         .whereRaw(`(tdtcr.c_registration_code = '${ body.c_registration_code }' OR tdtcr.n_identity_number = '${ body.c_registration_code }')`)
-        // .where({
-        //     "tdtcr.c_registration_code": body.c_registration_code,
-            
-        // })
-        // .orWhere({
-        //     "tdtcr.n_identity_number": body.c_registration_code,
-        // })
-        // tambah or where n_identity_number
-        console.log('[*] Result : ', rows)
+
     if (!rows) return false
 
     return rows

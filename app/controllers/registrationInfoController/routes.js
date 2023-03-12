@@ -10,6 +10,6 @@ const {
     validate
 } = require('./validator')
 
-router.post('/info', jwtFerify, operationalMiddelware, registrationInfo_rules(), validate, registrationInfo);
+router.post('/info', jwtFerify, registrationInfo_rules(), validate, operationalMiddelware, registrationInfo);
 
 module.exports = router;
