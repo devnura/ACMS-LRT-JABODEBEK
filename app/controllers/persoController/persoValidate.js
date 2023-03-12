@@ -10,6 +10,7 @@
     Config
  */
 const db = require('../../config/database')
+const winston = require('../../helpers/winston.logger')
 
 /*
     Services
@@ -31,11 +32,17 @@ const controller = async (req, res) => {
             const masterCard = await getMasterCard(body, trx)
             if (!masterCard) {
                 const message = await getMessage("0", 'CARD PERSO', '02', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '02',
                     message: message?.n_desc || 'Data Kartu Tidak Ditemukan !',
                     data: {}
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             const data = {
@@ -49,47 +56,79 @@ const controller = async (req, res) => {
 
             if (masterCard.i_blacklist_status) {
                 const message = await getMessage("0", 'CARD PERSO', '03', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '03',
                     message: message?.n_desc || 'Kartu Terkena Blacklist !',
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (!masterCard.b_active) {
                 const message = await getMessage("0", 'CARD PERSO', '04', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '04',
                     message: message?.n_desc || 'Kartu Sudah Tidak Aktif !',
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (masterCard.b_already_used) {
                 const message = await getMessage("0", 'CARD PERSO', '05', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '05',
                     message: message?.n_desc || 'Kartu Sudah Tidak Aktif !',
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
             
             const message = await getMessage("0", 'CARD PERSO', '00', trx)
-            return res.status(200).send({
+            result = {
                 status: message?.c_status || '00',
                 message: message?.n_desc || 'Sukses',
                 data: data
-            })
+            }
+            // log info
+            winston.logger.info(
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result) 
 
         })
 
     } catch (e) {
         console.error("[x] message : ", e.message)
-        return res.status(200).send({ //500
+        
+        result = { //500
             status: '99',
             message:  "Terjadi kesalahan system !",
             data: {}
-        })
+        }
+
+        // log info
+        winston.logger.error(
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
     }
 }
 

@@ -35,7 +35,7 @@ const validate = (req, res, next) => {
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`  
     // log info
     winston.logger.info(
-        `${requestId} | ${requestUrl} | LOCACTRION : VALIDATE | REQUEST : ${JSON.stringify(req.body)}`
+        `${requestId} | ${requestUrl} | LOCATION : VALIDATE | REQUEST : ${JSON.stringify(req.body)}`
     );
 
     if (!errors.isEmpty()) {
@@ -47,7 +47,7 @@ const validate = (req, res, next) => {
 
         // log warn
         winston.logger.warn(
-            `${requestId} | ${requestUrl} | LOCACTRION : VALIDATE | RESPONSE : ${JSON.stringify(result)}`
+            `${requestId} | ${requestUrl} | LOCATION : VALIDATE | RESPONSE : ${JSON.stringify(result)}`
         );
 
         return res.status(403).json(result);

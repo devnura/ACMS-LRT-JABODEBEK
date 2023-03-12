@@ -1,7 +1,6 @@
 const service = async (body, terminal, card, trx) => {
 
-    console.log(`[*] Insert perso`)
-    await Promise.all([
+    const result = await Promise.all([
         trx('ecms.t_d_trx_perso').insert({
             c_login: body.c_login,
             i_card_type: body.i_card_type,
@@ -30,7 +29,7 @@ const service = async (body, terminal, card, trx) => {
             c_uid: body.c_uid
         })]);
 
-    return true
+    return result
 
 }
 
