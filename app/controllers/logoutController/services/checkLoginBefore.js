@@ -1,10 +1,4 @@
-// const db = require('../../../config/database')
-
 const service = async (user, trx) => {
-
-    console.log("[*] CLOSESHIFT...")
-    // const trans = await db.transaction(async trx => {
-
     const isLoginBefore = await trx('ctm.t_d_login AS tdl')
         .first("tdl.c_login", "tdl.d_login")
         .where({
@@ -23,7 +17,5 @@ const service = async (user, trx) => {
     return isLoginBefore
 
 }
-
-
 
 module.exports = service;

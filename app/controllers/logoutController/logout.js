@@ -1,12 +1,18 @@
-const {
-    validationResult
-} = require('express-validator')
-const moment = require('moment')
+/* 
+ ;==========================================
+ ; Title    : Logout
+ ; Author   : Devnura
+ ; Date     : 2023-03-11
+ ;==========================================
+*/
 
+const moment = require('moment')
+moment.locale("id")
 /*
     Config
  */
 const db = require('../../config/database')
+const winston = require('../../helpers/winston.logger')
 
 /*
     Services
@@ -18,14 +24,8 @@ const checkLoginBefore = require('./services/checkLoginBefore')
 const getTerminal = require('./services/getTerminal')
 
 const controller = async (req, res) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) return res.status(200).send({
-        status: '98',
-        message: errors.array()[0].msg,
-        data: {}
-    }); //422
-
+    let result = {}
+	const location = "LOG OUT"
     try {
 
         let {
@@ -36,39 +36,62 @@ const controller = async (req, res) => {
 
             const user = await getUserByUsername(body.username, trx)
             if(!user) {
-                return res.status(200).send({
+                result = {
                     status: "02",
                     message: "Invalid Username/Password !",
                     data: {}
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             const password = await checkPassword(user, body.password)
-            console.log("password: ", password)
             if(!password){
-                return res.status(200).send({
+                result = {
                     status: "02",
                     message: "Invalid Username/Password !",
                     data: {}
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             const terminal = await getTerminal(body.c_pos, trx)
             if(!terminal){
-                return res.status(200).send({
+                result = {
                     status: "03",
                     message: "Invalid Terminal Code !",
                     data: {}
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             const loginBefore = await checkLoginBefore(user, trx)
             if (!loginBefore) {
-                return res.status(200).send({
+                result = {
                     status: "04",
                     message: "Belum Melakukan Openshift !",
                     data: {}
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
             // check time
             
@@ -76,36 +99,62 @@ const controller = async (req, res) => {
             let terminalTime = moment(body.d_logout_at)
 
             if (Math.abs(serverTime.diff(terminalTime, 's')) > 60) {
-                return res.status(200).send({
+                result = {
                     status: '05',
                     message: 'Waktu terminal dan server melebihi batas selisih !',
                     data: {}
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
             
             let closeshift = await closeShift(req.c_login, body.d_logout_at, terminal, user, trx);
             if (!closeshift) {
-                return res.status(200).send({
+                result = {
                     status: "01",
                     message: "Failed",
                     data: {}
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
-            return res.status(200).send({
+            result = {
                 status: "00",
                 message: "Success",
                 data: {}
-            })
+            }
+            // log info
+            winston.logger.info(
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)
         })
 
     } catch (e) {
         console.error("[x] message : ", e.message)
-        return res.status(200).send({ //500
+        
+        result = { //500
             status: '99',
-            message: "Terjadi Kesalahan System !",
+            message:  "Terjadi kesalahan system !",
             data: {}
-        })
+        }
+
+        // log info
+        winston.logger.error(
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
     }
 }
 

@@ -1,6 +1,4 @@
 const service = async (c_login, d_logout, terminal, user, trx) => {
-    console.log("[*] Getting t_m_pos : ")
-
     const login = await trx('ctm.t_d_login').update({
             i_login_status: '3'
         }, ['i_login_status'])
@@ -10,8 +8,6 @@ const service = async (c_login, d_logout, terminal, user, trx) => {
             'c_login_before': null,
             'i_login_status': 1
         })
-
-        console.log("sadasz", login)
 
     if (login.length > 0) {
 
