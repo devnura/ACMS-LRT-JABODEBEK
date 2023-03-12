@@ -19,8 +19,6 @@ const controller = async (req, res) => {
         } = req || ""
 
         await db.transaction(async trx => {
-
-        await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique})
         
         const terminal = await getTerminal(body.c_pos, trx)
         if (!terminal) {
@@ -49,11 +47,16 @@ const controller = async (req, res) => {
             })
         }
 
+       const insertRequestCode = await trx('ecms.t_m_request_code').insert({c_request_code: body.c_unique}, ["c_request_code"])
+
         const message = await getMessage(body.i_card_type, 'CARD PERSO', '00', trx)
         return res.status(200).send({
             status: message?.c_status || '00',
             message: message?.n_desc || 'Sukses !',
-            data: {}
+            data: {
+                insertRequestCode,
+                perso 
+            }
         })
     })
     } catch (e) {
