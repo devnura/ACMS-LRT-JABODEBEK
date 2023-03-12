@@ -1,8 +1,6 @@
 // const db = require('../../../config/database')
 
 const service = async (c_registration_code, trx) => {
-    console.log(`[*] Getting card t_m_card_owner_detail.. `)
-
     const rows = await trx
         .first(
             trx.raw('tmcod.i_card_type::varchar'),
@@ -49,8 +47,6 @@ const service = async (c_registration_code, trx) => {
             "tmcod.n_identity_number": c_registration_code,
             "tmcod.b_active": true,
         })
-
-    console.log('[*] Result : ', rows)
 
     return rows
 }

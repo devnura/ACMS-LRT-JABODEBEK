@@ -1,7 +1,5 @@
 const service = async (body, trx) => {
 
-    console.log(`[*] Inserting Replacement..`)
-    
     const terminal = await trx('ecms.t_m_card').first(
         "tmp.i_id",
         trx.raw("TRIM(tmp.c_pos) as c_pos"),
@@ -82,8 +80,7 @@ const service = async (body, trx) => {
             "d_blacklist" : trx.raw("NOW()"),
             "n_created_by" : body.n_card_replacement
         }, ["i_id"])
-        if (trx_blacklist) console.log("[trx] Transaction to trx_blacklist : Success")
-         
+
         await trx('ecms.t_d_trx_blacklist_history').insert({
             "i_blacklist" : trx_blacklist[0].i_id,
             "n_identity_number" : body.n_identity_number,
@@ -100,9 +97,6 @@ const service = async (body, trx) => {
         // ==================================================================================
         //    CARD
         // ================================================================================== 
-
-        console.log("[trx] running transaction t_m_card...")
-
         await trx('ecms.t_m_card').update({
                 b_active: false,
                 i_blacklist_status: 2
@@ -123,8 +117,6 @@ const service = async (body, trx) => {
         // ==================================================================================
         //    CARD OWNER
         // ================================================================================== 
-
-        console.log("[trx] running transaction t_m_card_owner_detail...")
 
         let old_t_m_card_owner_detail = await trx('ecms.t_m_card_owner_detail').update({
             b_active: false

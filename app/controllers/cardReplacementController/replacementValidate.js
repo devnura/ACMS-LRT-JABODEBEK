@@ -1,7 +1,15 @@
+/* 
+ ;==========================================
+ ; Title    : Card Replacemenet
+ ; Author   : Devnura
+ ; Date     : 2023-03-11
+ ;==========================================
+*/
 /*
     Config
  */
 const db = require('../../config/database')
+const winston = require('../../helpers/winston.logger')
 
 /*
     Services
@@ -10,9 +18,11 @@ const getMasterCard = require('./services/getMasterCard')
 const moment = require('moment')
 const getMessage = require('./services/getMessage')
 const getCardOwner = require('./services/getCardOwner')
+moment.locale("id")
 
 const controller = async (req, res) => {
-
+    let result = {}
+	const location = "REPLACEMENT VALIDATE"
     try {
 
         let {
@@ -103,81 +113,130 @@ const controller = async (req, res) => {
 
             if (!cardOwner) {
                 const message = await getMessage('0', 'CARD REPLACEMENT', '07', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || "07",
                     message: message?.n_desc || "Data employee/tenant tidak ditemukan",
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             // kartu
             if (!masterCard) {
                 const message = await getMessage('0', 'CARD REPLACEMENT', '03', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '03',
                     message: message?.n_desc || "Data kartu baru tidak ditemukan",
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (masterCard.i_card_type != cardOwner.i_card_type) {
                 
                 const message = await getMessage('0', 'CARD REPLACEMENT', '04', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '04',
                     message: "Tipe kartu tidak sesuai",
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (masterCard.b_already_used) {
                 const message = await getMessage('0', 'CARD REPLACEMENT', '05', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || '05',
                     message: message?.n_desc || "Kartu sudah digunakan",
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             if (masterCard.i_blacklist_status) {
 
                 const message = await getMessage('0', 'CARD REPLACEMENT', '06', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || "06",
                     message: message?.n_desc || "Kartu terkena blacklist",
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             // orangnya
 
             if (!cardOwner.b_active) {
                 const message = await getMessage('0', 'CARD REPLACEMENT', '08', trx)
-                return res.status(200).send({
+                result = {
                     status: message?.c_status || "08",
                     message: message?.n_desc || "Data employee/tenant sudah tidak aktif",
                     data: data
-                })
+                }
+                // log info
+                winston.logger.warn(
+                    `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+                );
+
+                return res.status(200).send(result)
             }
 
             const message = await getMessage('0', 'CARD REPLACEMENT', '00', trx)
-            return res.status(200).send({
+            result = {
                 status:  message?.c_status || "00",
                 message: message?.n_desc || "Sukses",
                 data: data
-            })
+            }
+            // log info
+            winston.logger.info(
+                `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)}`
+            );
+
+            return res.status(200).send(result)
 
         })
 
 
     } catch (e) {
-        // error server
         console.error("[x] message : ", e.message)
-        return res.status(200).send({ //500
+        
+        result = { //500
             status: '99',
             message:  "Terjadi kesalahan system !",
             data: {}
-        })
+        }
+
+        // log info
+        winston.logger.error(
+            `${req.requestId} | ${req.requestUrl} | LOCATION : ${location} | RESPONSE : ${JSON.stringify(result)} ERROR : ${e.message}`
+        );
+
+        return res.status(200).send(result)
     }
 }
 

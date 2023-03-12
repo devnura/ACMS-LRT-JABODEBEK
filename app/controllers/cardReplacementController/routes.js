@@ -13,7 +13,7 @@ const {
     validate
 } = require('./validator')
 
-router.post('/', jwtFerify, operationalMiddelware, replacement_rules(), validate, requestMiddelware, replacement);
-router.post('/validate', jwtFerify, operationalMiddelware, validate_rules(), validate, replacementValidate);
+router.post('/', jwtFerify, replacement_rules(), validate, operationalMiddelware, requestMiddelware, replacement);
+router.post('/validate', jwtFerify, validate_rules(), validate, operationalMiddelware, replacementValidate);
 
 module.exports = router;

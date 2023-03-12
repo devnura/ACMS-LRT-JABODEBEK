@@ -1,8 +1,6 @@
 // const db = require('../../../config/database')
 
 const service = async (c_uid, trx) => {
-    console.log(`[*] Checkink uid.. `)
-
     const rows = await trx
         .first(
             'tmc.c_uid',
@@ -26,8 +24,7 @@ const service = async (c_uid, trx) => {
             'tmc.c_uid': c_uid,
             'tmc.b_active': true
         })
-        console.log('[*] Result : ', rows)
-
+        
     return rows
 }
 
