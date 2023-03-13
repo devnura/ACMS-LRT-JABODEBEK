@@ -86,7 +86,7 @@ const middleware = async (req, res, next) => {
         const currentTime = moment()
         const server = await db.select([db.raw("TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') AS current_time")]).first()
 
-        if(Math.abs(moment(server.current_time).diff(currentTime, 'second')) > 60){
+        if(Math.abs(moment(server.current_time).diff(currentTime, 'second')) > 180){
             result = {
                 status: '05',
                 message: 'Waktu terminal dan server melebihi batas selisih !',
