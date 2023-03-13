@@ -178,7 +178,15 @@ const controller = async (req, res) => {
 
                 expiredDate = moment(d_expired).add(cardOwnerDetail.i_card_active_time_in_days, 'd').format('YYYY-MM-DD')
                 minUpdaeteExpiredDate = moment(body.d_expired_date_on_card).subtract(cardRenewalPeriod.e_setting, 'd').format('YYYY-MM-DD')
-    
+                
+                let expired_on_card = ""
+                if (today.isAfter(moment(body.d_expired_date_on_card).format('YYYY-MM-DD'))) {
+                    expired_on_card = today.format('YYYY-MM-DD')
+                    d_active = today.format('YYYY-MM-DD')
+                } else {
+                    expired_on_card = body.d_expired_date_on_card
+                    d_active = moment(body.d_expired_date_on_card).format('YYYY-MM-DD')
+                }
             }
 
             const data = {
