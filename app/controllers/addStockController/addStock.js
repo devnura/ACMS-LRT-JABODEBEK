@@ -69,7 +69,7 @@ const controller = async (req, res) => {
 			result = {
 				status: '00',
 				message: 'success',
-				data: addstock
+				data: {}
 			}
 
 			// log info
