@@ -115,7 +115,7 @@ const controller = async (req, res) => {
 
             if (Math.abs(serverTime.diff(terminalTime, 's')) > 180) {
                 result = {
-                    status: '05',
+                    status: '08',
                     message: 'Waktu terminal dan server melebihi batas selisih !',
                     data: {}
                 }

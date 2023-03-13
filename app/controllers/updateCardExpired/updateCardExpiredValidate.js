@@ -136,7 +136,8 @@ const controller = async (req, res) => {
                 endOfMonth = moment(expired_on_card).endOf('month').format('YYYY-MM-DD');
                 minUpdaeteExpiredDate = moment(expired_on_card).set('date', parseInt(cardRenewalPeriod?.e_setting || 20)).format('YYYY-MM-DD');
                 
-                d_expired = moment(endOfMonth).add(1, 'months').format('YYYY-MM-DD');
+                // d_expired = moment(endOfMonth).add(1, 'months').format('YYYY-MM-DD');
+                d_expired = moment(endOfMonth).add(cardRenewalPeriod.e_setting, 'd').format('YYYY-MM-DD');
 
                 // if (today.isBetween(minUpdaeteExpiredDate, endOfMonth)) {
                 // } else if(moment(today).isAfter(moment(body.d_expired_date_on_card).format('YYYY-MM-DD'))) {
