@@ -138,8 +138,8 @@ const controller = async (req, res) => {
                 
                 // d_expired = moment(endOfMonth).add(1, 'months').format('YYYY-MM-DD');
                 console.log("ini : ", cardOwnerDetail.i_card_active_time_in_days)
-                d_expired = moment(endOfMonth).add(cardOwnerDetail.i_card_active_time_in_days, 'd').format('YYYY-MM-DD')
-
+                d_expired = moment(d_active).add(cardOwnerDetail.i_card_active_time_in_days, 'd').format('YYYY-MM-DD')
+                console.log("first : ",endOfMonth, d_expired)
                 // if (today.isBetween(minUpdaeteExpiredDate, endOfMonth)) {
                 // } else if(moment(today).isAfter(moment(body.d_expired_date_on_card).format('YYYY-MM-DD'))) {
                 //     d_expired = moment(today).
